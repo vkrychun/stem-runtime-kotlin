@@ -1,0 +1,3 @@
+# macOS Finder metadata — must never appear in published artefacts
+.DS_Store
+**/.DS_Store
