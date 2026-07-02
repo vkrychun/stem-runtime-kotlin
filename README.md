@@ -90,7 +90,7 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    implementation("com.stemjson:stem-runtime-sdk:1.0.2")
+    implementation("com.stemjson:stem-runtime-sdk:1.1.0")
 }
 ```
 
@@ -157,7 +157,7 @@ my_feature.zip
 - A zip without `main.json` at the root fails validation.
 - `.strings` files under `localization/` back `l10n://` sources and the `localize(key, fallback)` expression function. The runtime falls back to the host app's resources if a key is missing.
 
-See [StemJSON Specification §14](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.0.md#14-package--distribution) for the full package format.
+See [StemJSON Specification §14](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.1.md#14-package--distribution) for the full package format.
 
 ---
 
@@ -618,7 +618,7 @@ StemJSON modules are a declarative tree: every component has a `type`, optional 
   "context": { "_label": "Email", "_text": "${email}" } }
 ```
 
-For the full component catalogue, value syntax, style options, and action types see the [**StemJSON v1.0 Specification**](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.0.md).
+For the full component catalogue, value syntax, style options, and action types see the [**StemJSON v1.1 Specification**](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.1.md).
 
 ---
 
