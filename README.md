@@ -17,6 +17,7 @@ Your AI can now ship complete native Android features, not just code snippets. *
 - [Quick Start](#quick-start)
 - [Zip-Packaged Modules](#zip-packaged-modules)
 - [Core API](#core-api)
+- [Security Audit](#security-audit)
 - [State Observation & Events](#state-observation--events)
 - [Module Lifecycle](#module-lifecycle)
 - [License & Watermark](#license--watermark)
@@ -201,11 +202,14 @@ For repository / service / picker registration, see the [Custom Repositories](#c
 ```kotlin
 public suspend fun validate(
     bytes: ByteArray,
+    namespace: String? = null,
     ignore: Set<StemSeverity> = emptySet(),
 ): StemValidationOutcome
 ```
 
 `ignore` suppresses the listed severity levels from causing a `Failure` (e.g. `setOf(StemSeverity.WARNING, StemSeverity.NOTE)`).
+
+`namespace` is an optional per-module storage namespace. When supplied, the module's on-device data (its local database and secured items) is isolated to that namespace, so two modules that declare the same storage ids — or two installs of the same tool — keep separate data. Omit it for the previous shared behavior; pass a stable id per install (e.g. a `UUID`) to isolate.
 
 `StemValidationOutcome` is a sealed interface; the validation report is **present on both branches** — even a successful validation may carry advisory notes/warnings:
 
@@ -256,6 +260,38 @@ val icon:  String? = render["icon"]
 `render.Render()` is the only composition entry point. It runs the SDK integrity checks and wraps the module body with the unlicensed-build watermark on every composition — both happen unconditionally and cannot be skipped by host code.
 
 Each `StemRender` carries a stable `unitId` so it can be used as a key in `LaunchedEffect`, `DisposableEffect`, `remember(render.unitId) { … }`, and Compose recomposition.
+
+---
+
+## Security Audit
+
+`audit(bytes, policy)` statically inspects a module **without instantiating it** — no timers,
+network requests, or listeners start — and reports the capabilities the module declares, so you
+can decide whether to load content from an untrusted source (for example, a module shared by
+another user).
+
+```kotlin
+when (val outcome = runtime.audit(bytes)) {
+    is StemAuditOutcome.Success -> {
+        val report = outcome.report
+        if ((report.highestSeverity ?: StemSecuritySeverity.INFO) >= StemSecuritySeverity.HIGH) {
+            // Prompt the user, or refuse to load.
+        }
+        report.findings.forEach { finding ->
+            Log.i("Stem", "${finding.severity} ${finding.category} ${finding.message}")
+        }
+        // report.manifest summarises endpoints, services, storage, timers, and subscriptions.
+    }
+    is StemAuditOutcome.Failure -> Log.w("Stem", "Could not decode: ${outcome.report.render()}")
+}
+```
+
+The SDK reports capabilities and an inherent severity; **your app owns** the decision to allow,
+prompt, or block. Tune what is acceptable with `StemSecurityPolicy` — endpoint and service
+allow-lists (`allowedEndpoints`, `allowedServices`), a minimum timer interval
+(`minIntervalSeconds`), a component-count cap (`maxComponents`), and a `trustedSource` shortcut
+that returns the capability manifest without raising findings (for first-party modules you
+already trust).
 
 ---
 
