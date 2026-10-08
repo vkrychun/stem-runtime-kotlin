@@ -91,7 +91,7 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    implementation("com.stemjson:stem-runtime-sdk:1.1.0")
+    implementation("com.stemjson:stem-runtime-sdk:1.2.0")
 }
 ```
 
@@ -158,7 +158,7 @@ my_feature.zip
 - A zip without `main.json` at the root fails validation.
 - `.strings` files under `localization/` back `l10n://` sources and the `localize(key, fallback)` expression function. The runtime falls back to the host app's resources if a key is missing.
 
-See [StemJSON Specification §14](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.1.md#14-package--distribution) for the full package format.
+See [StemJSON Specification §14](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.2.md#14-package--distribution) for the full package format.
 
 ---
 
@@ -204,12 +204,15 @@ public suspend fun validate(
     bytes: ByteArray,
     namespace: String? = null,
     ignore: Set<StemSeverity> = emptySet(),
+    compatibility: StemCompatibility = StemCompatibility.DEGRADE,
 ): StemValidationOutcome
 ```
 
 `ignore` suppresses the listed severity levels from causing a `Failure` (e.g. `setOf(StemSeverity.WARNING, StemSeverity.NOTE)`).
 
 `namespace` is an optional per-module storage namespace. When supplied, the module's on-device data (its local database and secured items) is isolated to that namespace, so two modules that declare the same storage ids — or two installs of the same tool — keep separate data. Omit it for the previous shared behavior; pass a stable id per install (e.g. a `UUID`) to isolate.
+
+`compatibility` controls what happens to a module written for a newer spec than the runtime implements: `StemCompatibility.DEGRADE` (the default) renders what it understands and reports the rest, while `STRICT` refuses the module with a single error. `StemRuntime.supportedSpec` returns the spec revision the runtime implements, for hosts that negotiate versions.
 
 `StemValidationOutcome` is a sealed interface; the validation report is **present on both branches** — even a successful validation may carry advisory notes/warnings:
 
@@ -257,6 +260,8 @@ val title: String? = render["title"]
 val icon:  String? = render["icon"]
 ```
 
+A render is shown in one place at a time; a second view of the same module needs its own render.
+
 `render.Render()` is the only composition entry point. It runs the SDK integrity checks and wraps the module body with the unlicensed-build watermark on every composition — both happen unconditionally and cannot be skipped by host code.
 
 Each `StemRender` carries a stable `unitId` so it can be used as a key in `LaunchedEffect`, `DisposableEffect`, `remember(render.unitId) { … }`, and Compose recomposition.
@@ -291,7 +296,8 @@ prompt, or block. Tune what is acceptable with `StemSecurityPolicy` — endpoint
 allow-lists (`allowedEndpoints`, `allowedServices`), a minimum timer interval
 (`minIntervalSeconds`), a component-count cap (`maxComponents`), and a `trustedSource` shortcut
 that returns the capability manifest without raising findings (for first-party modules you
-already trust).
+already trust). `hostNamespace` is the namespace you pass to `validate`; when it is empty, the
+audit flags local and secured stores that other modules share.
 
 ---
 
@@ -654,7 +660,7 @@ StemJSON modules are a declarative tree: every component has a `type`, optional 
   "context": { "_label": "Email", "_text": "${email}" } }
 ```
 
-For the full component catalogue, value syntax, style options, and action types see the [**StemJSON v1.1 Specification**](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.1.md).
+For the full component catalogue, value syntax, style options, and action types see the [**StemJSON v1.2 Specification**](https://github.com/vkrychun/StemJSON/blob/main/spec/v1.2.md).
 
 ---
 
