@@ -15,6 +15,7 @@ Your AI can now ship complete native Android features, not just code snippets. *
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Getting a Module](#getting-a-module)
 - [Zip-Packaged Modules](#zip-packaged-modules)
 - [Core API](#core-api)
 - [Security Audit](#security-audit)
@@ -136,6 +137,18 @@ private fun Dashboard() {
 ```
 
 Three steps in practice: create a runtime, validate JSON bytes (single file or zip-packaged module), embed the returned render — `StemRender.Render()` is a `@Composable` function. The SDK accepts either a single `.json` file or a zip-packaged module and picks the loader from the byte stream — no flag required.
+
+---
+
+## Getting a Module
+
+You don't have to write StemJSON by hand. Pick a route:
+
+- **From your AI chat.** A hosted MCP server lets Claude Code, Claude, ChatGPT or Cursor author and validate a module from chat. Run `claude mcp add --transport http stemjson https://mcp.stemjson.com/mcp`; other clients are covered at [stemjson.com/mcp](https://stemjson.com/mcp/).
+- **On iPhone or iPad.** [StemStudio AI](https://stemjson.com/stemstudio/) ([App Store](https://apps.apple.com/app/id6758396701)) writes a module from a plain-language description, previews it, and exports a `.stem` file.
+- **Ready-made modules.** Browse the [StemJSON catalog](https://stemjson.com/catalog).
+
+Load the resulting module the same way as in Quick Start, with `runtime.validate(bytes)`. The same module also runs on the [iOS runtime](https://github.com/vkrychun/stem-runtime-swift).
 
 ---
 
